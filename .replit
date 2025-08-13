@@ -6,7 +6,7 @@ expertMode = true
 channel = "stable-25_05"
 
 [workflows]
-runButton = "Project"
+runButton = "WhatsApp Bot"
 
 [[workflows.workflow]]
 name = "Project"
@@ -27,3 +27,12 @@ args = "npm install && node index.js"
 
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow]]
+name = "WhatsApp Bot"
+author = 46370744
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node index.js"
