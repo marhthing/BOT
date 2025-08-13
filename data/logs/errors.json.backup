@@ -47,6 +47,78 @@
         "version": "v20.19.3"
       },
       "severity": "critical"
+    },
+    {
+      "id": "err_me9qqxwb_7u1eb",
+      "timestamp": 1755075685403,
+      "datetime": "2025-08-13T09:01:25.403Z",
+      "context": "INITIALIZATION",
+      "error": {
+        "name": "Error",
+        "message": "Unmet dependencies: messageCache",
+        "stack": "Error: Unmet dependencies: messageCache\n    at FeatureManager.loadFeature (/home/runner/workspace/core/featureManager.js:213:27)\n    at async FeatureManager.initialize (/home/runner/workspace/core/featureManager.js:37:17)\n    at async BotManager.initializeComponents (/home/runner/workspace/core/botManager.js:62:9)\n    at async BotManager.initialize (/home/runner/workspace/core/botManager.js:37:13)\n    at async WhatsAppBotOrchestrator.initialize (/home/runner/workspace/index.js:32:13)\n    at async main (/home/runner/workspace/index.js:141:5)"
+      },
+      "metadata": {},
+      "system": {
+        "memory": {
+          "rss": 116252672,
+          "heapTotal": 45727744,
+          "heapUsed": 23629800,
+          "external": 3450958,
+          "arrayBuffers": 89166
+        },
+        "uptime": 0.401776751,
+        "version": "v20.19.3"
+      },
+      "severity": "critical"
+    },
+    {
+      "id": "err_me9w2xi4_hjvf5",
+      "timestamp": 1755084642844,
+      "datetime": "2025-08-13T11:30:42.844Z",
+      "context": "CONNECTION_ERROR",
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot destructure property 'creds' of 'authState' as it is null.",
+        "stack": "TypeError: Cannot destructure property 'creds' of 'authState' as it is null.\n    at makeSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:45:13)\n    at makeUSyncSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/usync.js:8:42)\n    at makeChatsSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/chats.js:21:46)\n    at makeGroupsSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/groups.js:10:46)\n    at makeMessagesSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/messages-send.js:18:48)\n    at makeMessagesRecvSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/messages-recv.js:20:57)\n    at makeBusinessSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/business.js:9:61)\n    at makeWASocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/index.js:6:69)\n    at ConnectionHandler.connect (/home/runner/workspace/core/connectionHandler.js:40:25)"
+      },
+      "metadata": {},
+      "system": {
+        "memory": {
+          "rss": 148205568,
+          "heapTotal": 68427776,
+          "heapUsed": 37114440,
+          "external": 3970867,
+          "arrayBuffers": 561644
+        },
+        "uptime": 69.57264257,
+        "version": "v20.19.3"
+      },
+      "severity": "high"
+    },
+    {
+      "id": "err_me9w2zo1_7u61y",
+      "timestamp": 1755084645649,
+      "datetime": "2025-08-13T11:30:45.649Z",
+      "context": "CONNECTION_ERROR",
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot destructure property 'creds' of 'authState' as it is null.",
+        "stack": "TypeError: Cannot destructure property 'creds' of 'authState' as it is null.\n    at makeSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:45:13)\n    at makeUSyncSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/usync.js:8:42)\n    at makeChatsSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/chats.js:21:46)\n    at makeGroupsSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/groups.js:10:46)\n    at makeMessagesSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/messages-send.js:18:48)\n    at makeMessagesRecvSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/messages-recv.js:20:57)\n    at makeBusinessSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/business.js:9:61)\n    at makeWASocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/index.js:6:69)\n    at ConnectionHandler.connect (/home/runner/workspace/core/connectionHandler.js:40:25)"
+      },
+      "metadata": {},
+      "system": {
+        "memory": {
+          "rss": 150433792,
+          "heapTotal": 71049216,
+          "heapUsed": 38137840,
+          "external": 4040324,
+          "arrayBuffers": 628209
+        },
+        "uptime": 72.377906093,
+        "version": "v20.19.3"
+      },
+      "severity": "high"
     }
   ]
 }

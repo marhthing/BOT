@@ -178,8 +178,12 @@ class BotManager {
                 setTimeout(() => this.startPairingProcess(), 2000);
             } else if (reason === 405) {
                 // Connection failure (likely no session), start pairing
-                this.logger.warn('🔐 Connection rejected. Starting pairing process...');
-                await this.startPairingProcess();
+                if (this.state !== 'AUTHENTICATING') {
+                    this.logger.warn('🔐 Connection rejected. Starting pairing process...');
+                    await this.startPairingProcess();
+                } else {
+                    this.logger.debug('Already in pairing mode, waiting for QR...');
+                }
             } else if (!this.isShuttingDown) {
                 this.logger.info('🔄 Connection closed, attempting to reconnect...');
                 this.setState('CONNECTING');
@@ -362,22 +366,36 @@ class BotManager {
             this.logger.info('🔐 Starting pairing process...');
             this.setState('AUTHENTICATING');
 
+            // Stop any existing connections first
+            if (this.sock) {
+                try {
+                    this.sock.end();
+                } catch (e) {
+                    // Ignore errors when closing
+                }
+                this.sock = null;
+            }
+
             // Clear any existing session
             await this.sessionManager.clearSession();
 
             // Create new session for pairing
             await this.sessionManager.createNewSession();
 
+            // Wait a moment for cleanup
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            this.logger.info('📱 Initializing WhatsApp connection for pairing...');
+            this.logger.info('💡 QR code will appear when ready to scan');
+
             // Start fresh connection for pairing
             this.sock = await this.connectionHandler.connect();
             this.registerEventHandlers();
 
-            this.logger.info('📱 Waiting for QR code or pairing method...');
-            this.logger.info('💡 The QR code will appear below when ready');
-
         } catch (error) {
             this.logger.error('❌ Failed to start pairing process:', error);
-            throw error;
+            // Retry after a delay if pairing fails
+            setTimeout(() => this.startPairingProcess(), 5000);
         }
     }
 

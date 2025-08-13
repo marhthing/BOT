@@ -71,6 +71,78 @@
         "version": "v20.19.3"
       },
       "severity": "critical"
+    },
+    {
+      "id": "err_me9w2xi4_hjvf5",
+      "timestamp": 1755084642844,
+      "datetime": "2025-08-13T11:30:42.844Z",
+      "context": "CONNECTION_ERROR",
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot destructure property 'creds' of 'authState' as it is null.",
+        "stack": "TypeError: Cannot destructure property 'creds' of 'authState' as it is null.\n    at makeSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:45:13)\n    at makeUSyncSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/usync.js:8:42)\n    at makeChatsSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/chats.js:21:46)\n    at makeGroupsSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/groups.js:10:46)\n    at makeMessagesSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/messages-send.js:18:48)\n    at makeMessagesRecvSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/messages-recv.js:20:57)\n    at makeBusinessSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/business.js:9:61)\n    at makeWASocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/index.js:6:69)\n    at ConnectionHandler.connect (/home/runner/workspace/core/connectionHandler.js:40:25)"
+      },
+      "metadata": {},
+      "system": {
+        "memory": {
+          "rss": 148205568,
+          "heapTotal": 68427776,
+          "heapUsed": 37114440,
+          "external": 3970867,
+          "arrayBuffers": 561644
+        },
+        "uptime": 69.57264257,
+        "version": "v20.19.3"
+      },
+      "severity": "high"
+    },
+    {
+      "id": "err_me9w2zo1_7u61y",
+      "timestamp": 1755084645649,
+      "datetime": "2025-08-13T11:30:45.649Z",
+      "context": "CONNECTION_ERROR",
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot destructure property 'creds' of 'authState' as it is null.",
+        "stack": "TypeError: Cannot destructure property 'creds' of 'authState' as it is null.\n    at makeSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:45:13)\n    at makeUSyncSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/usync.js:8:42)\n    at makeChatsSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/chats.js:21:46)\n    at makeGroupsSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/groups.js:10:46)\n    at makeMessagesSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/messages-send.js:18:48)\n    at makeMessagesRecvSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/messages-recv.js:20:57)\n    at makeBusinessSocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/business.js:9:61)\n    at makeWASocket (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/index.js:6:69)\n    at ConnectionHandler.connect (/home/runner/workspace/core/connectionHandler.js:40:25)"
+      },
+      "metadata": {},
+      "system": {
+        "memory": {
+          "rss": 150433792,
+          "heapTotal": 71049216,
+          "heapUsed": 38137840,
+          "external": 4040324,
+          "arrayBuffers": 628209
+        },
+        "uptime": 72.377906093,
+        "version": "v20.19.3"
+      },
+      "severity": "high"
+    },
+    {
+      "id": "err_me9w3m3x_y63pf",
+      "timestamp": 1755084674733,
+      "datetime": "2025-08-13T11:31:14.733Z",
+      "context": "UNCAUGHT_EXCEPTION",
+      "error": {
+        "name": "Error",
+        "message": "WebSocket was closed before the connection was established",
+        "stack": "Error: WebSocket was closed before the connection was established\n    at WebSocket.close (/home/runner/workspace/node_modules/ws/lib/websocket.js:299:7)\n    at WebSocketClient.close (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/Client/websocket.js:53:21)\n    at Object.end (/home/runner/workspace/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:263:20)\n    at ConnectionHandler.disconnect (/home/runner/workspace/core/connectionHandler.js:218:27)\n    at async BotManager.shutdown (/home/runner/workspace/core/botManager.js:262:17)\n    at async WhatsAppBotOrchestrator.gracefulShutdown (/home/runner/workspace/index.js:124:17)\n    at async process.<anonymous> (/home/runner/workspace/index.js:110:17)"
+      },
+      "metadata": {},
+      "system": {
+        "memory": {
+          "rss": 150937600,
+          "heapTotal": 72622080,
+          "heapUsed": 48411688,
+          "external": 6335216,
+          "arrayBuffers": 2931273
+        },
+        "uptime": 101.462205793,
+        "version": "v20.19.3"
+      },
+      "severity": "critical"
     }
   ]
 }

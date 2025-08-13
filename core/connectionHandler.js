@@ -121,6 +121,11 @@ class ConnectionHandler {
             reconnectAttempts: this.reconnectAttempts 
         });
 
+        if (qr) {
+            this.logger.info('📱 QR Code received! Display QR below:');
+            await this.eventBus.emit('qr.received', qr);
+        }
+
         if (connection === 'close') {
             await this.handleConnectionClose(lastDisconnect);
         } else if (connection === 'open') {
@@ -185,6 +190,11 @@ class ConnectionHandler {
         // Don't reconnect if logged out or banned
         if (reason === DisconnectReason.loggedOut || 
             reason === DisconnectReason.banned) {
+            return false;
+        }
+
+        // Don't auto-reconnect on 405 errors - these need pairing
+        if (reason === 405) {
             return false;
         }
 
