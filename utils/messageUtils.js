@@ -1,9 +1,9 @@
 /**
- * Message Utils - Message handling with error handling and formatting
+ * Message Utils - Message handling with error handling and formatting for whatsapp-web.js
  */
 
 const { Logger } = require('./logger');
-const { downloadMediaMessage } = require('@whiskeysockets/baileys');
+const { MessageMedia } = require('whatsapp-web.js');
 
 class MessageUtils {
     constructor() {
@@ -13,50 +13,38 @@ class MessageUtils {
         this.retryDelay = 1000;
     }
 
-    async sendMessage(sock, jid, content, options = {}) {
+    async sendMessage(client, chatId, content, options = {}) {
         try {
-            if (!sock || !jid || !content) {
-                throw new Error('Missing required parameters: sock, jid, or content');
+            if (!client || !chatId || !content) {
+                throw new Error('Missing required parameters: client, chatId, or content');
             }
 
             // Handle long messages
             if (typeof content === 'string' && content.length > this.maxMessageLength) {
-                return await this.sendLongMessage(sock, jid, content, options);
+                return await this.sendLongMessage(client, chatId, content, options);
             }
 
-            // Prepare message object
-            let messageObj;
-            
+            // Send message using whatsapp-web.js
+            let result;
             if (typeof content === 'string') {
-                messageObj = { text: content };
-            } else if (typeof content === 'object') {
-                messageObj = content;
+                result = await client.sendMessage(chatId, content, options);
+            } else if (content.media) {
+                // Handle media messages
+                result = await client.sendMessage(chatId, content.media, { caption: content.caption, ...options });
             } else {
-                throw new Error('Content must be string or message object');
-            }
-
-            // Add options
-            if (options.mentions) {
-                messageObj.mentions = options.mentions;
+                result = await client.sendMessage(chatId, content, options);
             }
             
-            if (options.quoted) {
-                messageObj.quoted = options.quoted;
-            }
-
-            // Send message with retry logic
-            const result = await this.sendWithRetry(sock, jid, messageObj);
-            
-            this.logger.debug(`Message sent to ${jid}: ${typeof content === 'string' ? content.substring(0, 50) : 'Media/Object'}`);
+            this.logger.debug(`Message sent to ${chatId}: ${typeof content === 'string' ? content.substring(0, 50) : 'Media/Object'}`);
             return result;
 
         } catch (error) {
-            this.logger.error(`Failed to send message to ${jid}:`, error);
+            this.logger.error(`Failed to send message to ${chatId}:`, error);
             throw error;
         }
     }
 
-    async sendLongMessage(sock, jid, text, options = {}) {
+    async sendLongMessage(client, chatId, text, options = {}) {
         try {
             const chunks = this.splitMessage(text);
             const results = [];
@@ -65,12 +53,13 @@ class MessageUtils {
                 const chunk = chunks[i];
                 const chunkOptions = { ...options };
                 
-                // Only quote the first message
-                if (i > 0) {
-                    delete chunkOptions.quoted;
+                // Add chunk indicator for multiple parts
+                let chunkText = chunk;
+                if (chunks.length > 1) {
+                    chunkText = `📄 Part ${i + 1}/${chunks.length}\n\n${chunk}`;
                 }
 
-                const result = await this.sendMessage(sock, jid, chunk, chunkOptions);
+                const result = await client.sendMessage(chatId, chunkText, chunkOptions);
                 results.push(result);
                 
                 // Small delay between chunks
@@ -133,10 +122,7 @@ class MessageUtils {
                 } else {
                     // Word itself is too long, split by characters
                     chunks.push(word.substring(0, maxLength));
-                    const remaining = word.substring(maxLength);
-                    if (remaining) {
-                        chunks.push(...this.splitByWords(remaining, maxLength));
-                    }
+                    currentChunk = word.substring(maxLength);
                 }
             }
         }
@@ -148,174 +134,19 @@ class MessageUtils {
         return chunks;
     }
 
-    async sendWithRetry(sock, jid, messageObj, attempt = 1) {
-        try {
-            return await sock.sendMessage(jid, messageObj);
-        } catch (error) {
-            if (attempt < this.retryAttempts) {
-                this.logger.warn(`Send attempt ${attempt} failed, retrying...`, error.message);
-                await this.delay(this.retryDelay * attempt);
-                return await this.sendWithRetry(sock, jid, messageObj, attempt + 1);
-            } else {
-                throw error;
-            }
-        }
-    }
-
-    async addReaction(sock, message, emoji) {
-        try {
-            const reactionMessage = {
-                react: {
-                    text: emoji,
-                    key: message.key
-                }
-            };
-
-            return await sock.sendMessage(message.key.remoteJid, reactionMessage);
-
-        } catch (error) {
-            this.logger.error('Failed to add reaction:', error);
-            throw error;
-        }
-    }
-
-    async removeReaction(sock, message) {
-        try {
-            const reactionMessage = {
-                react: {
-                    text: '',
-                    key: message.key
-                }
-            };
-
-            return await sock.sendMessage(message.key.remoteJid, reactionMessage);
-
-        } catch (error) {
-            this.logger.error('Failed to remove reaction:', error);
-            throw error;
-        }
-    }
-
-    async editMessage(sock, jid, messageKey, newText) {
-        try {
-            const editMessage = {
-                edit: {
-                    key: messageKey,
-                    text: newText
-                }
-            };
-
-            return await sock.sendMessage(jid, editMessage);
-
-        } catch (error) {
-            this.logger.error('Failed to edit message:', error);
-            throw error;
-        }
-    }
-
-    async deleteMessage(sock, message) {
-        try {
-            return await sock.sendMessage(message.key.remoteJid, {
-                delete: message.key
-            });
-
-        } catch (error) {
-            this.logger.error('Failed to delete message:', error);
-            throw error;
-        }
-    }
-
-    async forwardMessage(sock, fromMessage, toJid) {
-        try {
-            const forwardMessage = {
-                forward: fromMessage,
-                force: true
-            };
-
-            return await sock.sendMessage(toJid, forwardMessage);
-
-        } catch (error) {
-            this.logger.error('Failed to forward message:', error);
-            throw error;
-        }
-    }
-
-    async sendImage(sock, jid, imageBuffer, caption = '', options = {}) {
-        try {
-            const messageObj = {
-                image: imageBuffer,
-                caption: caption,
-                ...options
-            };
-
-            return await this.sendMessage(sock, jid, messageObj, options);
-
-        } catch (error) {
-            this.logger.error('Failed to send image:', error);
-            throw error;
-        }
-    }
-
-    async sendVideo(sock, jid, videoBuffer, caption = '', options = {}) {
-        try {
-            const messageObj = {
-                video: videoBuffer,
-                caption: caption,
-                ...options
-            };
-
-            return await this.sendMessage(sock, jid, messageObj, options);
-
-        } catch (error) {
-            this.logger.error('Failed to send video:', error);
-            throw error;
-        }
-    }
-
-    async sendAudio(sock, jid, audioBuffer, options = {}) {
-        try {
-            const messageObj = {
-                audio: audioBuffer,
-                mimetype: options.mimetype || 'audio/mp4',
-                ptt: options.ptt || false,
-                ...options
-            };
-
-            return await this.sendMessage(sock, jid, messageObj, options);
-
-        } catch (error) {
-            this.logger.error('Failed to send audio:', error);
-            throw error;
-        }
-    }
-
-    async sendDocument(sock, jid, documentBuffer, filename, mimetype, options = {}) {
-        try {
-            const messageObj = {
-                document: documentBuffer,
-                fileName: filename,
-                mimetype: mimetype,
-                ...options
-            };
-
-            return await this.sendMessage(sock, jid, messageObj, options);
-
-        } catch (error) {
-            this.logger.error('Failed to send document:', error);
-            throw error;
-        }
-    }
-
     async downloadMedia(message) {
         try {
-            const buffer = await downloadMediaMessage(message);
-            
-            if (!buffer) {
-                throw new Error('Failed to download media');
+            if (!message.hasMedia) {
+                throw new Error('Message does not contain media');
             }
 
-            this.logger.debug(`Downloaded media: ${buffer.length} bytes`);
-            return buffer;
+            // whatsapp-web.js handles media download differently
+            const media = await message.downloadMedia();
+            return {
+                data: media.data,
+                mimetype: media.mimetype,
+                filename: media.filename || `media_${Date.now()}`
+            };
 
         } catch (error) {
             this.logger.error('Failed to download media:', error);
@@ -323,143 +154,96 @@ class MessageUtils {
         }
     }
 
-    extractMessageText(message) {
-        try {
-            if (message.message?.conversation) {
-                return message.message.conversation;
-            }
-            
-            if (message.message?.extendedTextMessage?.text) {
-                return message.message.extendedTextMessage.text;
-            }
-            
-            if (message.message?.imageMessage?.caption) {
-                return message.message.imageMessage.caption;
-            }
-            
-            if (message.message?.videoMessage?.caption) {
-                return message.message.videoMessage.caption;
-            }
-            
-            if (message.message?.documentMessage?.caption) {
-                return message.message.documentMessage.caption;
-            }
-
-            return null;
-
-        } catch (error) {
-            this.logger.error('Failed to extract message text:', error);
-            return null;
+    formatMessage(content, mentions = []) {
+        if (typeof content !== 'string') {
+            return content;
         }
-    }
 
-    getMessageType(message) {
-        try {
-            if (!message.message) return 'unknown';
-
-            const messageTypes = Object.keys(message.message);
-            
-            // Filter out metadata keys
-            const contentTypes = messageTypes.filter(type => 
-                !['messageContextInfo', 'deviceSentMessage'].includes(type)
-            );
-
-            return contentTypes[0] || 'unknown';
-
-        } catch (error) {
-            this.logger.error('Failed to get message type:', error);
-            return 'unknown';
+        // Format mentions
+        if (mentions.length > 0) {
+            return {
+                text: content,
+                mentions: mentions
+            };
         }
-    }
 
-    isMediaMessage(message) {
-        const mediaTypes = [
-            'imageMessage',
-            'videoMessage',
-            'audioMessage',
-            'documentMessage',
-            'stickerMessage'
-        ];
-
-        const messageType = this.getMessageType(message);
-        return mediaTypes.includes(messageType);
-    }
-
-    formatMention(jid, displayName) {
-        return `@${displayName || jid.split('@')[0]}`;
+        return content;
     }
 
     extractMentions(text) {
         const mentionRegex = /@(\d+)/g;
-        const matches = text.match(mentionRegex);
-        
-        if (!matches) return [];
-        
-        return matches.map(match => match.replace('@', '') + '@s.whatsapp.net');
-    }
+        const mentions = [];
+        let match;
 
-    createMentionText(text, mentions) {
-        let mentionText = text;
-        const mentionList = [];
-
-        for (const mention of mentions) {
-            const jid = mention.includes('@') ? mention : `${mention}@s.whatsapp.net`;
-            const displayName = mention.split('@')[0];
-            
-            mentionText = mentionText.replace(`@${displayName}`, `@${displayName}`);
-            mentionList.push(jid);
+        while ((match = mentionRegex.exec(text)) !== null) {
+            mentions.push(`${match[1]}@c.us`);
         }
 
-        return {
-            text: mentionText,
-            mentions: mentionList
-        };
+        return mentions;
     }
 
-    delay(ms) {
+    isValidChatId(chatId) {
+        // WhatsApp chat ID formats: number@c.us or number-timestamp@g.us
+        return /^\d+@c\.us$|^\d+-\d+@g\.us$/.test(chatId);
+    }
+
+    async delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    formatError(error) {
+        return {
+            message: error.message,
+            stack: error.stack,
+            timestamp: new Date().toISOString()
+        };
     }
 
-    formatDuration(milliseconds) {
-        const seconds = Math.floor(milliseconds / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const hours = Math.floor(minutes / 60);
-
-        if (hours > 0) {
-            return `${hours}:${String(minutes % 60).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-        } else {
-            return `${minutes}:${String(seconds % 60).padStart(2, '0')}`;
+    // Message validation helpers
+    validateMessageContent(content) {
+        if (!content) {
+            throw new Error('Message content cannot be empty');
         }
+
+        if (typeof content === 'string' && content.length > this.maxMessageLength * 10) {
+            throw new Error('Message is too long to send');
+        }
+
+        return true;
     }
 
-    isGroupMessage(message) {
-        return message.key.remoteJid.endsWith('@g.us');
+    // Get message info for whatsapp-web.js format
+    getMessageInfo(message) {
+        return {
+            id: message.id._serialized,
+            chatId: message.from,
+            fromMe: message.fromMe,
+            body: message.body,
+            type: message.type,
+            timestamp: message.timestamp,
+            hasMedia: message.hasMedia,
+            isForwarded: message.isForwarded,
+            author: message.author
+        };
     }
 
-    isPrivateMessage(message) {
-        return message.key.remoteJid.endsWith('@s.whatsapp.net');
+    // Format chat ID for whatsapp-web.js
+    formatChatId(phoneNumber) {
+        // Remove any non-digit characters
+        const cleanNumber = phoneNumber.replace(/\D/g, '');
+        
+        // Add country code if missing (assumes +1 for US numbers starting with area codes)
+        let formattedNumber = cleanNumber;
+        if (cleanNumber.length === 10) {
+            formattedNumber = '1' + cleanNumber;
+        }
+        
+        return `${formattedNumber}@c.us`;
     }
 
-    getMessageAge(message) {
-        const messageTime = message.messageTimestamp * 1000;
-        return Date.now() - messageTime;
-    }
-
-    sanitizeText(text) {
-        // Remove potentially harmful characters and limit length
-        return text
-            .replace(/[^\w\s\-_.!@#$%^&*()+=\[\]{}|;:,.<>?~`]/g, '')
-            .substring(0, this.maxMessageLength);
+    // Format group chat ID
+    formatGroupChatId(groupId) {
+        return groupId.includes('@g.us') ? groupId : `${groupId}@g.us`;
     }
 }
 
