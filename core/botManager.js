@@ -26,6 +26,7 @@ class BotManager {
         this.sock = null;
         this.storage = new JsonStorage('data/config.json');
         this.isShuttingDown = false;
+        this.pairingRetries = 0;
     }
 
     async initialize() {
@@ -298,22 +299,16 @@ class BotManager {
 
     async checkAndValidateSession() {
         try {
-            // Check if session has valid credentials
-            const authState = this.sessionManager.getAuthState();
-            if (!authState || !authState.creds || !authState.creds.noiseKey) {
-                this.logger.info('❌ No valid session credentials found');
-                return false;
+            // For whatsapp-web.js, check if session files exist
+            const hasValidSession = await this.sessionManager.hasValidSession();
+            
+            if (hasValidSession) {
+                this.logger.info('✅ Valid session found');
+                return true;
             }
-
-            // Check session age and validity
-            const sessionData = await this.sessionManager.getSessionData();
-            if (!sessionData || !sessionData.isValid) {
-                this.logger.info('❌ Session is invalid or corrupted');
-                return false;
-            }
-
-            this.logger.info('✅ Valid session found');
-            return true;
+            
+            this.logger.info('❌ No valid session found');
+            return false;
         } catch (error) {
             this.logger.warn('⚠️ Session validation failed:', error.message);
             return false;
@@ -367,6 +362,20 @@ class BotManager {
             this.logger.info('🔐 Starting pairing process...');
             this.setState('AUTHENTICATING');
 
+            // Initialize retry counter if not exists
+            if (!this.pairingRetries) {
+                this.pairingRetries = 0;
+            }
+
+            // Limit pairing retries
+            if (this.pairingRetries >= 3) {
+                this.logger.error('❌ Maximum pairing attempts reached. Please check your setup and restart the bot.');
+                this.setState('FAILED');
+                return;
+            }
+
+            this.pairingRetries++;
+
             // Stop any existing connections first
             if (this.client) {
                 try {
@@ -392,7 +401,12 @@ class BotManager {
         } catch (error) {
             this.logger.error('❌ Failed to start pairing process:', error);
             // Retry after a delay if pairing fails
-            setTimeout(() => this.startPairingProcess(), 5000);
+            if (this.pairingRetries < 3) {
+                setTimeout(() => this.startPairingProcess(), 10000);
+            } else {
+                this.logger.error('❌ Too many pairing failures. Bot stopped.');
+                this.setState('FAILED');
+            }
         }
     }
 
@@ -466,6 +480,7 @@ class BotManager {
 
     async handleConnectionReady(data) {
         this.setState('READY');
+        this.pairingRetries = 0; // Reset retry counter on success
         this.logger.info('🎉 Successfully connected to WhatsApp!');
         
         const { info } = data;

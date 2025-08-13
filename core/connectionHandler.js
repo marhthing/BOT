@@ -24,30 +24,7 @@ class ConnectionHandler {
         try {
             this.logger.info('🔧 Initializing Connection Handler...');
             
-            // Initialize WhatsApp client with LocalAuth for session management
-            this.client = new Client({
-                authStrategy: new LocalAuth({
-                    clientId: 'whatsapp-bot',
-                    dataPath: './auth'
-                }),
-                puppeteer: {
-                    headless: true,
-                    args: [
-                        '--no-sandbox',
-                        '--disable-setuid-sandbox',
-                        '--disable-dev-shm-usage',
-                        '--disable-accelerated-2d-canvas',
-                        '--no-first-run',
-                        '--no-zygote',
-                        '--single-process',
-                        '--disable-gpu'
-                    ]
-                }
-            });
-
-            // Setup event handlers
-            this.setupEventHandlers();
-            
+            // Don't create client here, create it when connecting
             this.logger.info('✅ Connection Handler initialized');
         } catch (error) {
             this.logger.error('❌ Failed to initialize Connection Handler:', error);
@@ -154,6 +131,32 @@ class ConnectionHandler {
             this.logger.info('🔌 Establishing WhatsApp connection...');
             this.pairingMethod = pairingMethod;
             
+            // Create client if it doesn't exist
+            if (!this.client) {
+                this.client = new Client({
+                    authStrategy: new LocalAuth({
+                        clientId: 'whatsapp-bot',
+                        dataPath: './auth'
+                    }),
+                    puppeteer: {
+                        headless: true,
+                        args: [
+                            '--no-sandbox',
+                            '--disable-setuid-sandbox',
+                            '--disable-dev-shm-usage',
+                            '--disable-accelerated-2d-canvas',
+                            '--no-first-run',
+                            '--no-zygote',
+                            '--single-process',
+                            '--disable-gpu'
+                        ]
+                    }
+                });
+
+                // Setup event handlers
+                this.setupEventHandlers();
+            }
+            
             // Initialize the client
             await this.client.initialize();
             
@@ -161,7 +164,7 @@ class ConnectionHandler {
             return this.client;
             
         } catch (error) {
-            this.logger.error('❌ Failed to establish connection:', error);
+            this.logger.error('❌ Failed to establish connection:', error.message || error);
             throw error;
         }
     }
