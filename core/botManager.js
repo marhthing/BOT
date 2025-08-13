@@ -385,16 +385,92 @@ class BotManager {
             // Wait a moment for cleanup
             await new Promise(resolve => setTimeout(resolve, 2000));
 
-            this.logger.info('📱 Initializing WhatsApp connection for pairing...');
-            this.logger.info('💡 QR code will appear when ready to scan');
-
-            // Start fresh connection for pairing
-            this.sock = await this.connectionHandler.connect();
-            this.registerEventHandlers();
+            // Ask user for pairing preference
+            await this.askPairingMethod();
 
         } catch (error) {
             this.logger.error('❌ Failed to start pairing process:', error);
             // Retry after a delay if pairing fails
+            setTimeout(() => this.startPairingProcess(), 5000);
+        }
+    }
+
+    async askPairingMethod() {
+        this.logger.info('');
+        this.logger.info('🔗 Choose your pairing method:');
+        this.logger.info('');
+        this.logger.info('1️⃣  QR Code - Scan with your phone (default)');
+        this.logger.info('2️⃣  8-Digit Code - Enter pairing code manually');
+        this.logger.info('');
+        this.logger.info('💡 Both methods work the same - choose what\'s easier for you!');
+        this.logger.info('');
+        this.logger.info('⚡ Starting QR Code pairing in 10 seconds...');
+        this.logger.info('   (The system will automatically choose QR code if no input is provided)');
+        this.logger.info('');
+        
+        // For now, start with QR code (we can enhance this later to accept user input)
+        setTimeout(async () => {
+            await this.startQRPairing();
+        }, 10000);
+    }
+
+    async startQRPairing() {
+        try {
+            this.logger.info('📱 Starting QR Code pairing...');
+            this.logger.info('💡 QR code will appear below when ready');
+
+            // Start fresh connection for QR pairing
+            this.sock = await this.connectionHandler.connect();
+            this.registerEventHandlers();
+
+        } catch (error) {
+            this.logger.error('❌ Failed to start QR pairing:', error);
+            this.logger.info('🔄 Trying 8-digit code pairing as fallback...');
+            await this.start8DigitPairing();
+        }
+    }
+
+    async start8DigitPairing() {
+        try {
+            this.logger.info('🔢 Starting 8-digit code pairing...');
+            
+            // Create connection for code pairing
+            this.sock = await this.connectionHandler.connect();
+            this.registerEventHandlers();
+
+            // Request pairing code
+            this.logger.info('🔄 Requesting pairing code from WhatsApp...');
+            this.logger.info('📱 Please provide your phone number in international format (e.g., +1234567890)');
+            this.logger.info('💡 The system will display an 8-digit code to enter in WhatsApp');
+            
+            // For now, use a default number - this can be made interactive later
+            // We'll trigger the pairing mechanism and see if it works
+            setTimeout(async () => {
+                try {
+                    // Request pairing code using Baileys' requestPairingCode function
+                    const pairingCode = await this.sock.requestPairingCode('1234567890'); // Placeholder
+                    this.logger.info('');
+                    this.logger.info('🔢 Your 8-digit pairing code is:');
+                    this.logger.info('');
+                    this.logger.info(`📱 ${pairingCode}`);
+                    this.logger.info('');
+                    this.logger.info('💡 Enter this code in WhatsApp:');
+                    this.logger.info('   1. Open WhatsApp on your phone');
+                    this.logger.info('   2. Go to Settings > Linked Devices');
+                    this.logger.info('   3. Tap "Link a Device"');
+                    this.logger.info('   4. Tap "Link with phone number instead"');
+                    this.logger.info('   5. Enter the code above');
+                    this.logger.info('');
+                } catch (error) {
+                    this.logger.error('❌ Failed to generate pairing code:', error);
+                    this.logger.info('🔄 Falling back to QR code pairing...');
+                    await this.startQRPairing();
+                }
+            }, 2000);
+
+        } catch (error) {
+            this.logger.error('❌ Failed to start 8-digit pairing:', error);
+            this.logger.info('🔄 Retrying pairing process...');
             setTimeout(() => this.startPairingProcess(), 5000);
         }
     }

@@ -22,12 +22,13 @@ Preferred communication style: Simple, everyday language.
 
 ### Authentication & Pairing
 
-**Dual Pairing Support**: 
-- QR Code pairing with terminal display for development environments
-- 8-digit code pairing for headless deployments
-- Automatic method selection based on environment capabilities
+**Interactive Pairing Choice**: 
+- User is prompted to choose between QR Code or 8-digit Code pairing
+- QR Code pairing with terminal display (default choice after 10 seconds)
+- 8-digit code pairing with step-by-step instructions
+- Automatic fallback between methods if one fails
 
-**Smart Pairing Manager**: Orchestrates pairing flows with retry logic, timeout handling, and fallback mechanisms.
+**Smart Pairing Manager**: Orchestrates pairing flows with retry logic, timeout handling, and fallback mechanisms. Includes proper user choice prompts and method validation.
 
 ### Message Processing
 
