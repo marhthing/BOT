@@ -1,0 +1,29 @@
+{
+    "enabled": true,
+    "settings": {
+        "enabled": true,
+        "retention": 259200000,
+        "maxPerChat": 1000,
+        "cleanupInterval": 21600000,
+        "autoSave": true,
+        "compressionEnabled": false
+    },
+    "storage": {
+        "dataFile": "messageCache.json",
+        "retention": "3d",
+        "autoCleanup": true,
+        "cleanupInterval": "6h"
+    },
+    "permissions": {
+        "status": ["owner"],
+        "clear": ["owner"],
+        "cleanup": ["owner"],
+        "settings": ["owner"]
+    },
+    "metadata": {
+        "version": "1.0.0",
+        "description": "Intelligent message caching foundation",
+        "author": "MatDev",
+        "dependencies": []
+    }
+}

@@ -1,0 +1,52 @@
+{
+  "errors": [
+    {
+      "id": "err_me9qockt_7sgej",
+      "timestamp": 1755075564461,
+      "datetime": "2025-08-13T08:59:24.461Z",
+      "context": "INITIALIZATION",
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read properties of null (reading 'emit')",
+        "stack": "TypeError: Cannot read properties of null (reading 'emit')\n    at BotManager.setState (/home/runner/workspace/core/botManager.js:210:23)\n    at BotManager.initialize (/home/runner/workspace/core/botManager.js:34:18)\n    at WhatsAppBotOrchestrator.initialize (/home/runner/workspace/index.js:32:35)\n    at async main (/home/runner/workspace/index.js:141:5)"
+      },
+      "metadata": {},
+      "system": {
+        "memory": {
+          "rss": 103632896,
+          "heapTotal": 42586112,
+          "heapUsed": 31123968,
+          "external": 3436889,
+          "arrayBuffers": 71012
+        },
+        "uptime": 0.399672454,
+        "version": "v20.19.3"
+      },
+      "severity": "critical"
+    },
+    {
+      "id": "err_me9qpzju_uhne3",
+      "timestamp": 1755075640890,
+      "datetime": "2025-08-13T09:00:40.890Z",
+      "context": "INITIALIZATION",
+      "error": {
+        "name": "Error",
+        "message": "Unmet dependencies: messageCache",
+        "stack": "Error: Unmet dependencies: messageCache\n    at FeatureManager.loadFeature (/home/runner/workspace/core/featureManager.js:157:27)\n    at async FeatureManager.initialize (/home/runner/workspace/core/featureManager.js:36:17)\n    at async BotManager.initializeComponents (/home/runner/workspace/core/botManager.js:62:9)\n    at async BotManager.initialize (/home/runner/workspace/core/botManager.js:37:13)\n    at async WhatsAppBotOrchestrator.initialize (/home/runner/workspace/index.js:32:13)\n    at async main (/home/runner/workspace/index.js:141:5)"
+      },
+      "metadata": {},
+      "system": {
+        "memory": {
+          "rss": 115920896,
+          "heapTotal": 45727744,
+          "heapUsed": 25855848,
+          "external": 4635961,
+          "arrayBuffers": 1274169
+        },
+        "uptime": 0.370112666,
+        "version": "v20.19.3"
+      },
+      "severity": "critical"
+    }
+  ]
+}

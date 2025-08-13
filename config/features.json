@@ -1,0 +1,69 @@
+{
+  "antiDelete": {
+    "enabled": true,
+    "autoStart": true,
+    "priority": 80,
+    "dependencies": [
+      "messageCache"
+    ],
+    "settings": {
+      "globalEnabled": false,
+      "groups": false,
+      "chats": false,
+      "target": "auto",
+      "forwardMedia": true,
+      "maxCacheSize": 10000,
+      "retentionTime": 259200000
+    }
+  },
+  "antiViewOnce": {
+    "enabled": true,
+    "autoStart": true,
+    "priority": 70,
+    "dependencies": [
+      "messageCache"
+    ],
+    "settings": {
+      "globalEnabled": false,
+      "groups": false,
+      "chats": false,
+      "target": "auto",
+      "autoSave": true,
+      "notifyCapture": true,
+      "maxFileSize": 104857600
+    }
+  },
+  "autoReact": {
+    "enabled": true,
+    "autoStart": true,
+    "priority": 60,
+    "dependencies": [],
+    "settings": {
+      "globalEnabled": false,
+      "groups": false,
+      "chats": false,
+      "reactions": [
+        "❤️",
+        "👍",
+        "😂",
+        "😍",
+        "🔥"
+      ],
+      "probability": 0.3,
+      "cooldownTime": 5000
+    }
+  },
+  "messageCache": {
+    "enabled": true,
+    "autoStart": true,
+    "priority": 90,
+    "dependencies": [],
+    "settings": {
+      "enabled": true,
+      "retention": 259200000,
+      "maxPerChat": 1000,
+      "cleanupInterval": 21600000,
+      "compressionEnabled": false
+    }
+  }
+}

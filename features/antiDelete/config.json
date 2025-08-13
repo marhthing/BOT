@@ -1,0 +1,31 @@
+{
+    "enabled": true,
+    "settings": {
+        "globalEnabled": false,
+        "groups": false,
+        "chats": false,
+        "target": "auto",
+        "forwardMedia": true,
+        "forwardStickers": true,
+        "forwardDocuments": true,
+        "maxCacheSize": 10000,
+        "retentionTime": "3d"
+    },
+    "storage": {
+        "dataFile": "antiDelete.json",
+        "retention": "3d",
+        "autoCleanup": true,
+        "cleanupInterval": "1h"
+    },
+    "permissions": {
+        "toggle": ["owner"],
+        "config": ["owner"],
+        "history": ["owner"]
+    },
+    "metadata": {
+        "version": "1.0.0",
+        "description": "Anti-delete feature with universal content support",
+        "author": "MatDev",
+        "dependencies": ["messageCache"]
+    }
+}

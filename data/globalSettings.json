@@ -1,0 +1,76 @@
+{
+    "bot": {
+        "commandPrefix": ".",
+        "ownerChat": null,
+        "debugMode": false,
+        "creator": "MatDev",
+        "timezone": "UTC",
+        "language": "en"
+    },
+    "pairing": {
+        "preferredMethod": "auto",
+        "phoneNumber": null,
+        "lastUsed": null
+    },
+    "antiDelete": {
+        "enabled": false,
+        "globalEnabled": false,
+        "groups": false,
+        "chats": false,
+        "target": "auto",
+        "forwardMedia": true,
+        "forwardStickers": true,
+        "forwardDocuments": true
+    },
+    "antiViewOnce": {
+        "enabled": false,
+        "globalEnabled": false,
+        "groups": false,
+        "chats": false,
+        "target": "auto",
+        "autoSave": true,
+        "notifyCapture": true,
+        "maxFileSize": 104857600,
+        "supportedTypes": ["image", "video", "audio", "voice"]
+    },
+    "autoReact": {
+        "enabled": false,
+        "globalEnabled": false,
+        "groups": false,
+        "chats": false,
+        "reactions": ["❤️", "👍", "😂", "😍", "🔥"],
+        "probability": 0.3,
+        "cooldownTime": 5000
+    },
+    "messageCache": {
+        "enabled": true,
+        "retention": 259200000,
+        "maxPerChat": 1000,
+        "cleanupInterval": 21600000,
+        "compressionEnabled": false
+    },
+    "viewOnceCache": {
+        "enabled": true,
+        "retention": "PERMANENT",
+        "maxFileSize": 104857600,
+        "autoCleanup": false,
+        "supportedTypes": ["image", "video", "audio", "voice"]
+    },
+    "notifications": {
+        "enabled": true,
+        "errorAlerts": true,
+        "statusUpdates": false,
+        "performanceAlerts": true
+    },
+    "security": {
+        "ownerOnly": {
+            "reload": true,
+            "settings": true,
+            "features": true
+        },
+        "rateLimit": {
+            "commandsPerMinute": 20,
+            "messagesPerMinute": 60
+        }
+    }
+}
