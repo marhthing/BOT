@@ -18,7 +18,7 @@ Preferred communication style: Simple, everyday language.
 
 **Plugin-Based Feature System**: Features are self-contained modules in the `/features` directory that automatically register commands and event handlers. Each feature extends `FeatureBase` and includes its own configuration, storage, and dependencies.
 
-**Session Management**: Persistent session handling using Baileys' multi-file auth state, with automatic validation, backup creation, and cleanup routines.
+**Session Management**: Persistent session handling using whatsapp-web.js LocalAuth strategy, with automatic validation, backup creation, and cleanup routines.
 
 ### Authentication & Pairing
 
@@ -69,11 +69,13 @@ Preferred communication style: Simple, everyday language.
 
 ## External Dependencies
 
-**WhatsApp Integration**: `@whiskeysockets/baileys` - Primary WhatsApp Web API client for message handling, authentication, and connection management.
+**WhatsApp Integration**: `whatsapp-web.js` - Primary WhatsApp Web API client for message handling, authentication, and connection management. Uses Puppeteer for browser automation and provides reliable QR code authentication.
 
 **QR Code Generation**: 
 - `qrcode-terminal` - Terminal-based QR code display for pairing
 - `qrcode` - QR code generation utilities
+
+**Puppeteer**: Browser automation engine used by whatsapp-web.js for running WhatsApp Web interface in headless mode.
 
 **Node.js Built-ins**: Extensive use of `fs/promises`, `path`, `events`, and `os` modules for file operations, system information, and event handling.
 

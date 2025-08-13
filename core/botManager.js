@@ -224,11 +224,11 @@ class BotManager {
         const { messages, type } = messageUpdate;
 
         for (const message of messages) {
-            if (message.key.fromMe) continue; // Skip own messages
+            if (message.fromMe) continue; // Skip own messages (whatsapp-web.js format)
 
             try {
                 // Process commands
-                await this.commandProcessor.processMessage(message, this.sock);
+                await this.commandProcessor.processMessage(message, this.connectionHandler.getClient());
                 
             } catch (error) {
                 this.logger.error('Error processing message:', error);
@@ -324,35 +324,36 @@ class BotManager {
         try {
             this.logger.info('🔌 Attempting to connect with existing session...');
             
-            // Start connection
-            this.sock = await this.connectionHandler.connect();
-            this.registerEventHandlers();
+            // Setup event handlers for connection events
+            this.setupConnectionEventHandlers();
+            
+            // Try to connect with existing session
+            this.client = await this.connectionHandler.connect();
 
-            // Wait for connection result (with timeout)
-            return new Promise((resolve) => {
+            // Wait for connection result
+            return await new Promise((resolve) => {
                 const timeout = setTimeout(() => {
                     this.logger.warn('⏰ Connection attempt timed out');
                     resolve(false);
                 }, 15000); // 15 second timeout
 
-                const connectionHandler = (update) => {
-                    const { connection } = update;
-                    
-                    if (connection === 'open') {
-                        clearTimeout(timeout);
-                        this.logger.info('✅ Successfully connected with existing session!');
-                        resolve(true);
-                    } else if (connection === 'close') {
-                        clearTimeout(timeout);
-                        this.logger.warn('❌ Connection failed with existing session');
-                        resolve(false);
-                    }
+                // Listen for ready event
+                const readyHandler = () => {
+                    clearTimeout(timeout);
+                    this.logger.info('✅ Successfully connected with existing session!');
+                    resolve(true);
                 };
 
-                // Listen for connection updates
-                if (this.sock) {
-                    this.sock.ev.on('connection.update', connectionHandler);
-                }
+                // Listen for auth failure
+                const authFailHandler = () => {
+                    clearTimeout(timeout);
+                    this.logger.warn('❌ Connection failed with existing session');
+                    resolve(false);
+                };
+
+                // Set up temporary event listeners
+                this.eventBus.once('connection.ready', readyHandler);
+                this.eventBus.once('authentication.failed', authFailHandler);
             });
 
         } catch (error) {
@@ -367,13 +368,13 @@ class BotManager {
             this.setState('AUTHENTICATING');
 
             // Stop any existing connections first
-            if (this.sock) {
+            if (this.client) {
                 try {
-                    this.sock.end();
+                    await this.connectionHandler.destroy();
                 } catch (e) {
                     // Ignore errors when closing
                 }
-                this.sock = null;
+                this.client = null;
             }
 
             // Clear any existing session
@@ -419,9 +420,11 @@ class BotManager {
             this.logger.info('📱 Starting QR Code pairing...');
             this.logger.info('💡 QR code will appear below when ready');
 
+            // Setup event handlers for connection events
+            this.setupConnectionEventHandlers();
+
             // Start fresh connection for QR pairing
-            this.sock = await this.connectionHandler.connect();
-            this.registerEventHandlers();
+            this.client = await this.connectionHandler.connect('qr');
 
         } catch (error) {
             this.logger.error('❌ Failed to start QR pairing:', error);
@@ -433,40 +436,16 @@ class BotManager {
     async start8DigitPairing() {
         try {
             this.logger.info('🔢 Starting 8-digit code pairing...');
+            this.logger.info('💡 Note: WhatsApp Web uses QR code authentication');
+            this.logger.info('📱 A QR code will appear - this is the standard and secure method');
+            this.logger.info('');
             
-            // Create connection for code pairing
-            this.sock = await this.connectionHandler.connect();
-            this.registerEventHandlers();
-
-            // Request pairing code
-            this.logger.info('🔄 Requesting pairing code from WhatsApp...');
-            this.logger.info('📱 Please provide your phone number in international format (e.g., +1234567890)');
-            this.logger.info('💡 The system will display an 8-digit code to enter in WhatsApp');
+            // Setup event handlers for connection events
+            this.setupConnectionEventHandlers();
             
-            // For now, use a default number - this can be made interactive later
-            // We'll trigger the pairing mechanism and see if it works
-            setTimeout(async () => {
-                try {
-                    // Request pairing code using Baileys' requestPairingCode function
-                    const pairingCode = await this.sock.requestPairingCode('1234567890'); // Placeholder
-                    this.logger.info('');
-                    this.logger.info('🔢 Your 8-digit pairing code is:');
-                    this.logger.info('');
-                    this.logger.info(`📱 ${pairingCode}`);
-                    this.logger.info('');
-                    this.logger.info('💡 Enter this code in WhatsApp:');
-                    this.logger.info('   1. Open WhatsApp on your phone');
-                    this.logger.info('   2. Go to Settings > Linked Devices');
-                    this.logger.info('   3. Tap "Link a Device"');
-                    this.logger.info('   4. Tap "Link with phone number instead"');
-                    this.logger.info('   5. Enter the code above');
-                    this.logger.info('');
-                } catch (error) {
-                    this.logger.error('❌ Failed to generate pairing code:', error);
-                    this.logger.info('🔄 Falling back to QR code pairing...');
-                    await this.startQRPairing();
-                }
-            }, 2000);
+            // WhatsApp Web.js uses QR codes as the primary authentication method
+            // This is more secure and reliable than phone number codes
+            this.client = await this.connectionHandler.connectWithCode();
 
         } catch (error) {
             this.logger.error('❌ Failed to start 8-digit pairing:', error);
@@ -475,14 +454,65 @@ class BotManager {
         }
     }
 
+    setupConnectionEventHandlers() {
+        // Listen for connection events from whatsapp-web.js
+        this.eventBus.on('connection.ready', this.handleConnectionReady.bind(this));
+        this.eventBus.on('connection.disconnected', this.handleConnectionDisconnected.bind(this));
+        this.eventBus.on('authentication.success', this.handleAuthenticationSuccess.bind(this));
+        this.eventBus.on('authentication.failed', this.handleAuthenticationFailed.bind(this));
+        this.eventBus.on('message.received', this.handleMessageReceived.bind(this));
+        this.eventBus.on('message.deleted', this.handleMessageDeleted.bind(this));
+    }
+
+    async handleConnectionReady(data) {
+        this.setState('READY');
+        this.logger.info('🎉 Successfully connected to WhatsApp!');
+        
+        const { info } = data;
+        this.logger.info(`📱 Connected as: ${info.pushname} (${info.wid})`);
+        
+        // Send confirmation message to self
+        await this.sendPairingConfirmation();
+    }
+
+    async handleConnectionDisconnected(data) {
+        this.logger.warn('🔌 Connection lost:', data.reason);
+        this.setState('DISCONNECTED');
+    }
+
+    async handleAuthenticationSuccess() {
+        this.logger.info('✅ Authentication successful!');
+        this.setState('AUTHENTICATED');
+    }
+
+    async handleAuthenticationFailed(error) {
+        this.logger.error('❌ Authentication failed:', error);
+        this.setState('AUTHENTICATION_FAILED');
+        
+        // Restart pairing process
+        setTimeout(() => this.startPairingProcess(), 3000);
+    }
+
+    async handleMessageReceived(message) {
+        // Emit to features for processing
+        await this.eventBus.emit('messages.upsert', { messages: [message], type: 'notify' });
+    }
+
+    async handleMessageDeleted(data) {
+        // Emit to features for processing
+        await this.eventBus.emit('messages.delete', data);
+    }
+
     async sendPairingConfirmation() {
         try {
             // Wait a moment for connection to stabilize
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, 3000));
 
-            // Get bot's own JID
-            const myJid = this.sock.user?.id;
-            if (myJid) {
+            // Get bot's own number/info
+            const client = this.connectionHandler.getClient();
+            const info = client.info;
+            
+            if (info && info.wid) {
                 const message = '🤖 *WhatsApp Bot Successfully Paired!*\n\n' +
                               '✅ Your WhatsApp bot is now connected and ready to use.\n' +
                               '📱 All features are active:\n' +
@@ -492,7 +522,7 @@ class BotManager {
                               '• Message caching\n\n' +
                               '💡 Type `.help` to see available commands.';
 
-                await this.sock.sendMessage(myJid, { text: message });
+                await this.connectionHandler.sendMessage(info.wid._serialized, message);
                 this.logger.info('📧 Pairing confirmation sent to your WhatsApp');
             }
         } catch (error) {

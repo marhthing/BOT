@@ -1,22 +1,19 @@
 /**
- * Session Manager - Enhanced session handling with validation
+ * Session Manager - Handles WhatsApp authentication sessions for whatsapp-web.js
  */
 
-const { useMultiFileAuthState } = require('@whiskeysockets/baileys');
-const { JsonStorage } = require('../utils/jsonStorage');
-const { Logger } = require('../utils/logger');
 const fs = require('fs').promises;
 const path = require('path');
+const { Logger } = require('../utils/logger');
+const { JsonStorage } = require('../utils/jsonStorage');
 
 class SessionManager {
     constructor(eventBus) {
         this.eventBus = eventBus;
         this.logger = new Logger('SessionManager');
-        this.sessionPath = 'data/session';
+        this.sessionPath = './auth'; // whatsapp-web.js uses ./auth directory
         this.storage = new JsonStorage('data/session.json');
         this.sessionData = null;
-        this.authState = null;
-        this.saveCreds = null;
         
         // Session configuration
         this.SESSION_TIMEOUT = 30000;
@@ -32,9 +29,6 @@ class SessionManager {
             
             // Load or create session
             await this.loadSession();
-            
-            // Setup cleanup timer
-            this.setupCleanupTimer();
             
             this.logger.info('✅ Session Manager initialized');
         } catch (error) {
@@ -54,213 +48,173 @@ class SessionManager {
 
     async loadSession() {
         try {
-            // Load multi-file auth state
-            const { state, saveCreds } = await useMultiFileAuthState(this.sessionPath);
-            this.authState = state;
-            this.saveCreds = saveCreds;
-
-            // Load session metadata
-            this.sessionData = await this.storage.load() || {
-                createdAt: Date.now(),
-                lastUsed: Date.now(),
-                version: '1.0.0',
-                isValid: true
-            };
-
-            // Validate session
-            await this.validateSession();
-            
-            this.logger.info('📁 Session loaded successfully');
+            this.sessionData = await this.storage.load();
+            if (!this.sessionData) {
+                this.sessionData = {
+                    created: Date.now(),
+                    lastUsed: Date.now(),
+                    isValid: false
+                };
+                await this.storage.save(this.sessionData);
+            }
         } catch (error) {
-            this.logger.warn('⚠️ Failed to load session, creating new one:', error.message);
-            await this.createNewSession();
+            this.logger.warn('Could not load session data:', error.message);
+            this.sessionData = {
+                created: Date.now(),
+                lastUsed: Date.now(),
+                isValid: false
+            };
+        }
+    }
+
+    async hasValidSession() {
+        try {
+            // Check if auth directory has session files
+            const authFiles = await fs.readdir(this.sessionPath);
+            const hasSessionFiles = authFiles.some(file => 
+                file.startsWith('session-') || 
+                file.includes('whatsapp-bot') ||
+                file.includes('Default')
+            );
+            
+            if (!hasSessionFiles) {
+                this.logger.debug('No session files found in auth directory');
+                return false;
+            }
+
+            // Check session data age
+            if (this.sessionData) {
+                const age = Date.now() - this.sessionData.lastUsed;
+                if (age > this.SESSION_MAX_AGE) {
+                    this.logger.warn('Session data expired, clearing...');
+                    await this.clearSession();
+                    return false;
+                }
+                
+                this.logger.debug('Valid session found');
+                return this.sessionData.isValid;
+            }
+
+            return false;
+        } catch (error) {
+            this.logger.warn('Session validation failed:', error.message);
+            return false;
+        }
+    }
+
+    async validateSession() {
+        try {
+            const hasSession = await this.hasValidSession();
+            
+            if (hasSession) {
+                this.sessionData.lastUsed = Date.now();
+                this.sessionData.isValid = true;
+                await this.storage.save(this.sessionData);
+                this.logger.info('✅ Valid session found');
+                return true;
+            }
+            
+            this.logger.warn('⚠️ No valid session found');
+            return false;
+        } catch (error) {
+            this.logger.error('❌ Session validation failed:', error);
+            return false;
         }
     }
 
     async createNewSession() {
         try {
+            this.logger.info('✨ Creating new session...');
+            
             // Clear existing session data
             await this.clearSession();
             
-            // Create new auth state
-            const { state, saveCreds } = await useMultiFileAuthState(this.sessionPath);
-            this.authState = state;
-            this.saveCreds = saveCreds;
-
-            // Create new session metadata
+            // Create new session data
             this.sessionData = {
-                createdAt: Date.now(),
+                created: Date.now(),
                 lastUsed: Date.now(),
-                version: '1.0.0',
-                isValid: true
+                isValid: false
             };
-
-            await this.saveSession();
+            
+            await this.storage.save(this.sessionData);
             this.logger.info('✨ New session created');
+            
         } catch (error) {
             this.logger.error('❌ Failed to create new session:', error);
             throw error;
         }
     }
 
-    async validateSession() {
-        if (!this.sessionData) {
-            throw new Error('No session data found');
+    async clearSession() {
+        try {
+            this.logger.info('🗑️ Clearing session...');
+            
+            // Remove auth directory contents
+            try {
+                const authFiles = await fs.readdir(this.sessionPath);
+                for (const file of authFiles) {
+                    const filePath = path.join(this.sessionPath, file);
+                    try {
+                        const stat = await fs.stat(filePath);
+                        if (stat.isDirectory()) {
+                            await fs.rm(filePath, { recursive: true, force: true });
+                        } else {
+                            await fs.unlink(filePath);
+                        }
+                    } catch (e) {
+                        // Ignore errors for individual file deletions
+                    }
+                }
+            } catch (error) {
+                // Directory might not exist, that's ok
+            }
+
+            // Reset session data
+            this.sessionData = {
+                created: Date.now(),
+                lastUsed: Date.now(),
+                isValid: false
+            };
+            
+            await this.storage.save(this.sessionData);
+            this.logger.info('🗑️ Session cleared');
+            
+        } catch (error) {
+            this.logger.error('❌ Failed to clear session:', error);
+            throw error;
         }
-
-        const now = Date.now();
-        const sessionAge = now - this.sessionData.createdAt;
-
-        // Check if session is too old
-        if (sessionAge > this.SESSION_MAX_AGE) {
-            this.logger.warn('⏰ Session expired due to age, creating new session');
-            await this.createNewSession();
-            return;
-        }
-
-        // Check if session is corrupted
-        if (!this.authState || !this.authState.creds) {
-            this.logger.warn('🔧 Session corrupted, creating new session');
-            await this.createNewSession();
-            return;
-        }
-
-        // Update last used
-        this.sessionData.lastUsed = now;
-        this.sessionData.isValid = true;
-        
-        this.logger.debug('✅ Session validation passed');
     }
 
-    async saveSession() {
+    async updateSessionStatus(isValid) {
         try {
             if (this.sessionData) {
+                this.sessionData.isValid = isValid;
                 this.sessionData.lastUsed = Date.now();
                 await this.storage.save(this.sessionData);
             }
-            
-            this.logger.debug('💾 Session metadata saved');
         } catch (error) {
-            this.logger.error('❌ Failed to save session:', error);
-        }
-    }
-
-    async clearSession() {
-        try {
-            // Remove session files
-            const files = await fs.readdir(this.sessionPath);
-            for (const file of files) {
-                await fs.unlink(path.join(this.sessionPath, file));
-            }
-            
-            // Clear session data
-            this.sessionData = null;
-            this.authState = null;
-            this.saveCreds = null;
-            
-            this.logger.info('🗑️ Session cleared');
-        } catch (error) {
-            this.logger.warn('⚠️ Error clearing session:', error.message);
+            this.logger.warn('Failed to update session status:', error);
         }
     }
 
     async needsPairing() {
-        if (!this.authState || !this.authState.creds || !this.authState.creds.registered) {
-            return true;
-        }
-        return false;
+        const hasValid = await this.hasValidSession();
+        return !hasValid;
     }
 
-    async backupSession() {
-        try {
-            const backupPath = `${this.sessionPath}_backup_${Date.now()}`;
-            
-            // Copy session files
-            const files = await fs.readdir(this.sessionPath);
-            await fs.mkdir(backupPath, { recursive: true });
-            
-            for (const file of files) {
-                const src = path.join(this.sessionPath, file);
-                const dest = path.join(backupPath, file);
-                await fs.copyFile(src, dest);
-            }
-            
-            this.logger.info(`📦 Session backed up to: ${backupPath}`);
-            return backupPath;
-        } catch (error) {
-            this.logger.error('❌ Failed to backup session:', error);
-            throw error;
-        }
-    }
-
-    async restoreSession(backupPath) {
-        try {
-            // Clear current session
-            await this.clearSession();
-            
-            // Restore from backup
-            const files = await fs.readdir(backupPath);
-            await fs.mkdir(this.sessionPath, { recursive: true });
-            
-            for (const file of files) {
-                const src = path.join(backupPath, file);
-                const dest = path.join(this.sessionPath, file);
-                await fs.copyFile(src, dest);
-            }
-            
-            // Reload session
-            await this.loadSession();
-            
-            this.logger.info(`🔄 Session restored from: ${backupPath}`);
-        } catch (error) {
-            this.logger.error('❌ Failed to restore session:', error);
-            throw error;
-        }
-    }
-
-    setupCleanupTimer() {
-        // Run cleanup every 6 hours
-        setInterval(async () => {
-            await this.cleanupOldBackups();
-        }, 6 * 60 * 60 * 1000);
-    }
-
-    async cleanupOldBackups() {
-        try {
-            const parentDir = path.dirname(this.sessionPath);
-            const files = await fs.readdir(parentDir);
-            
-            const backupPattern = new RegExp(`${path.basename(this.sessionPath)}_backup_\\d+`);
-            const now = Date.now();
-            
-            for (const file of files) {
-                if (backupPattern.test(file)) {
-                    const filePath = path.join(parentDir, file);
-                    const stats = await fs.stat(filePath);
-                    
-                    // Remove backups older than 7 days
-                    if (now - stats.mtime.getTime() > this.SESSION_MAX_AGE) {
-                        await fs.rmdir(filePath, { recursive: true });
-                        this.logger.debug(`🗑️ Removed old backup: ${file}`);
-                    }
-                }
-            }
-        } catch (error) {
-            this.logger.warn('⚠️ Error during backup cleanup:', error.message);
-        }
-    }
-
-    // Getters
+    // Getters for compatibility
     getAuthState() {
-        return this.authState;
+        // whatsapp-web.js handles auth internally, so we return null
+        return null;
     }
 
     getSaveCreds() {
-        return this.saveCreds;
+        // whatsapp-web.js handles credentials internally, so we return null
+        return null;
     }
 
-    getSessionData() {
-        return this.sessionData;
+    getSessionPath() {
+        return this.sessionPath;
     }
 
     getSessionData() {
@@ -268,7 +222,34 @@ class SessionManager {
     }
 
     isSessionValid() {
-        return this.sessionData && this.sessionData.isValid;
+        return this.sessionData?.isValid || false;
+    }
+
+    async backup() {
+        try {
+            const backupPath = `${this.sessionPath}_backup_${Date.now()}`;
+            await fs.cp(this.sessionPath, backupPath, { recursive: true });
+            this.logger.info(`Session backed up to: ${backupPath}`);
+            return backupPath;
+        } catch (error) {
+            this.logger.warn('Failed to backup session:', error);
+            return null;
+        }
+    }
+
+    async restore(backupPath) {
+        try {
+            if (await fs.access(backupPath).then(() => true).catch(() => false)) {
+                await this.clearSession();
+                await fs.cp(backupPath, this.sessionPath, { recursive: true });
+                this.logger.info(`Session restored from: ${backupPath}`);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            this.logger.error('Failed to restore session:', error);
+            return false;
+        }
     }
 }
 
