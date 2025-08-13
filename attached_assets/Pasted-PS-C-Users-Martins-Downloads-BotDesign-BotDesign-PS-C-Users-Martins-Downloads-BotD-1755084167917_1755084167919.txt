@@ -1,0 +1,448 @@
+PS C:\Users\Martins\Downloads\BotDesign\BotDesign>
+
+
+
+
+
+
+
+PS C:\Users\Martins\Downloads\BotDesign\BotDesign>
+
+
+
+
+
+PS C:\Users\Martins\Downloads\BotDesign\BotDesign>
+
+
+
+PS C:\Users\Martins\Downloads\BotDesign\BotDesign>
+
+PS C:\Users\Martins\Downloads\BotDesign\BotDesign>
+PS C:\Users\Martins\Downloads\BotDesign\BotDesign>
+
+Oops, something went wrong.  Please report this bug with the details below.
+Report on GitHub: https://github.com/lzybkr/PSReadLine/issues/new
+-----------------------------------------------------------------------
+Last 1 Keys:
+ Ctrl+v
+
+Exception:
+System.ArgumentOutOfRangeException: The value must be greater than or equal to zero and less than the console's buffer size in that dimension.
+Parameter name: top
+Actual value was -36.
+   at System.Console.SetCursorPosition(Int32 left, Int32 top)
+   at Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(RenderData renderData, String defaultColor)
+   at Microsoft.PowerShell.PSConsoleReadLine.ForceRender()
+   at Microsoft.PowerShell.PSConsoleReadLine.Paste(Nullable`1 key, Object arg)
+   at Microsoft.PowerShell.PSConsoleReadLine.ProcessOneKey(ConsoleKeyInfo key, Dictionary`2 dispatchTable, Boolean ignoreIfNoAction, Object arg)
+   at Microsoft.PowerShell.PSConsoleReadLine.InputLoop()
+   at Microsoft.PowerShell.PSConsoleReadLine.ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics)
+-----------------------------------------------------------------------
+PS C:\Users\Martins\Downloads\BotDesign\BotDesign> // checkFeatures.js
+>> const fs = require("fs");
+>> const path = require("path");
+>>
+>> const featuresDir = path.join(__dirname, "data", "features");      
+>> const files = [
+>>   "antiDelete.json",
+>>   "antiViewOnce.json",
+>>   "autoReact.json",
+>>   "messageCache.json"
+>> ];
+>>
+>> // Ensure the features directory exists
+>> if (!fs.existsSync(featuresDir)) {
+>>   fs.mkdirSync(featuresDir, { recursive: true });
+>>   console.log("? Created missing folder:", featuresDir);
+>> }
+>>
+>> // Ensure each required JSON file exists and is valid
+>> files.forEach(file => {
+>>   const filePath = path.join(featuresDir, file);
+>>
+>>   if (!fs.existsSync(filePath)) {
+>>     fs.writeFileSync(filePath, "{}");
+PS C:\Users\Martins\Downloads\BotDesign\BotDesign> node checkFeatures.js
+🔍 Feature files check completed!
+PS C:\Users\Martins\Downloads\BotDesign\BotDesign> node index.js
+[12:17:10] INFO  [Orchestrator] 🚀 Initializing WhatsApp Bot System...
+[12:17:10] INFO  [BotManager] 🔧 Initializing Bot Manager...
+[12:17:10] INFO  [EventBus] 🔧 Initializing Event Bus...
+[12:17:10] INFO  [EventBus] ✅ Event Bus initialized
+[12:17:10] INFO  [SessionManager] 🔧 Initializing Session Manager...
+[12:17:10] INFO  [SessionManager] 📁 Session loaded successfully
+[12:17:10] INFO  [SessionManager] ✅ Session Manager initialized
+[12:17:10] INFO  [CommandProcessor] 🔧 Initializing Command Processor...
+[12:17:10] INFO  [CommandProcessor] ✅ Command Processor initialized     
+[12:17:10] INFO  [FeatureManager] 🔧 Initializing Feature Manager...    
+[12:17:10] INFO  [FeatureManager] 🔍 Discovered 4 features
+[12:17:10] INFO  [FeatureManager] 📦 Loading feature: messageCache
+[12:17:10] INFO  [Feature:messageCache] 🔧 Initializing messageCache feature...
+[12:17:10] INFO  [Feature:messageCache] ✅ messageCache feature initialized
+[12:17:10] INFO  [FeatureManager] ✅ Feature loaded: messageCache
+[12:17:10] INFO  [FeatureManager] 📦 Loading feature: antiDelete
+[12:17:10] INFO  [Feature:antiDelete] 🔧 Initializing antiDelete feature...
+[12:17:10] INFO  [Feature:antiDelete] ✅ antiDelete feature initialized
+[12:17:10] INFO  [FeatureManager] ✅ Feature loaded: antiDelete        
+[12:17:10] INFO  [FeatureManager] 📦 Loading feature: antiViewOnce
+[12:17:10] INFO  [Feature:antiViewOnce] 🔧 Initializing antiViewOnce feature...
+[12:17:10] INFO  [Feature:antiViewOnce] ✅ antiViewOnce feature initialized
+[12:17:10] INFO  [FeatureManager] ✅ Feature loaded: antiViewOnce
+[12:17:10] INFO  [FeatureManager] 📦 Loading feature: autoReact
+[12:17:10] INFO  [Feature:autoReact] 🔧 Initializing autoReact feature...
+[12:17:10] INFO  [Feature:autoReact] ✅ autoReact feature initialized     
+[12:17:10] INFO  [FeatureManager] ✅ Feature loaded: autoReact
+[12:17:10] INFO  [FeatureManager] ✅ Feature Manager initialized with 4 features
+[12:17:10] INFO  [ConnectionHandler] 🔧 Initializing Connection Handler...     
+[12:17:10] INFO  [ConnectionHandler] ✅ Connection Handler initialized
+[12:17:10] INFO  [PairingManager] 🔧 Initializing Pairing Manager...
+[12:17:10] INFO  [QRPairing] 🔧 Initializing QR Pairing...
+[12:17:10] INFO  [QRPairing] ✅ QR Pairing initialized
+[12:17:10] INFO  [CodePairing] 🔧 Initializing Code Pairing...
+[12:17:10] INFO  [CodePairing] ✅ Code Pairing initialized
+[12:17:10] INFO  [PairingManager] ✅ Pairing Manager initialized
+[12:17:10] INFO  [BotManager] ✅ Bot Manager initialized successfully
+[12:17:10] INFO  [Orchestrator] ✅ WhatsApp Bot System initialized successfully
+[12:17:10] INFO  [Orchestrator] 🔄 Starting WhatsApp Bot...
+[12:17:10] INFO  [BotManager] 🚀 Starting Bot Manager...
+[12:17:10] INFO  [FeatureManager] 🚀 Starting features...
+[12:17:10] INFO  [FeatureManager] ▶️ Starting feature: messageCache
+[12:17:10] INFO  [Feature:messageCache] ▶️ Starting messageCache feature...
+[12:17:10] INFO  [FeatureManager] ▶️ Starting feature: antiDelete
+[12:17:10] INFO  [Feature:antiDelete] ▶️ Starting antiDelete feature...
+[12:17:10] INFO  [FeatureManager] ▶️ Starting feature: antiViewOnce
+[12:17:10] INFO  [Feature:antiViewOnce] ▶️ Starting antiViewOnce feature...
+[12:17:10] INFO  [FeatureManager] ▶️ Starting feature: autoReact
+[12:17:10] INFO  [Feature:autoReact] ▶️ Starting autoReact feature...
+[12:17:10] INFO  [Feature:messageCache] ✅ messageCache feature started
+[12:17:10] INFO  [Feature:antiDelete] ✅ antiDelete feature started
+[12:17:10] INFO  [Feature:antiViewOnce] ✅ antiViewOnce feature started
+[12:17:10] INFO  [Feature:autoReact] ✅ autoReact feature started
+[12:17:10] INFO  [FeatureManager] ✅ Feature started: messageCache
+[12:17:10] INFO  [FeatureManager] ✅ Feature started: antiDelete
+[12:17:10] INFO  [FeatureManager] ✅ Feature started: antiViewOnce
+[12:17:10] INFO  [FeatureManager] ✅ Feature started: autoReact
+[12:17:10] INFO  [FeatureManager] ✅ Features started
+[12:17:10] INFO  [ConnectionHandler] 🔌 Establishing WhatsApp connection...
+Crypto at connect(): Crypto {}
+[12:17:10] INFO  [ConnectionHandler] ✅ WhatsApp socket created successfully
+[12:17:10] INFO  [BotManager] 🎉 Bot Manager started successfully!
+[12:17:10] INFO  [Orchestrator] 🎉 WhatsApp Bot started successfully!
+[12:17:16] WARN  [ConnectionHandler] 🔌 Connection closed:
+  Extra: {
+  "reason": 405,
+  "message": "Connection Failure"
+}
+[12:17:16] INFO  [ConnectionHandler] 🔄 Attempting reconnect 1/5 in 3000ms...
+[12:17:16] INFO  [Feature:messageCache] 🔌 Connection closed, saving cache data
+[12:17:16] INFO  [Feature:antiDelete] 🔌 Connection closed, saving anti-delete data
+[12:17:16] INFO  [Feature:antiViewOnce] 🔌 Connection closed, saving anti-viewonce data
+[12:17:16] INFO  [Feature:autoReact] 🔌 Connection closed, saving auto-react data
+[12:17:16] INFO  [BotManager] 🔄 Connection closed, attempting to reconnect...
+[12:17:19] INFO  [ConnectionHandler] 🔌 Establishing WhatsApp connection...
+Crypto at connect(): Crypto {}
+[12:17:19] INFO  [ConnectionHandler] ✅ WhatsApp socket created successfully
+[12:17:19] INFO  [BotManager] 🚀 Starting Bot Manager...
+[12:17:19] INFO  [FeatureManager] 🚀 Starting features...
+[12:17:19] INFO  [FeatureManager] ▶️ Starting feature: messageCache
+[12:17:19] INFO  [Feature:messageCache] ▶️ Starting messageCache feature...
+[12:17:19] INFO  [FeatureManager] ▶️ Starting feature: antiDelete
+[12:17:19] INFO  [Feature:antiDelete] ▶️ Starting antiDelete feature...
+[12:17:19] INFO  [FeatureManager] ▶️ Starting feature: antiViewOnce
+[12:17:19] INFO  [Feature:antiViewOnce] ▶️ Starting antiViewOnce feature...
+[12:17:19] INFO  [FeatureManager] ▶️ Starting feature: autoReact
+[12:17:19] INFO  [Feature:autoReact] ▶️ Starting autoReact feature...
+[12:17:19] INFO  [Feature:messageCache] ✅ messageCache feature started
+[12:17:19] INFO  [Feature:antiDelete] ✅ antiDelete feature started
+[12:17:19] INFO  [Feature:antiViewOnce] ✅ antiViewOnce feature started
+[12:17:19] INFO  [Feature:autoReact] ✅ autoReact feature started
+[12:17:19] INFO  [FeatureManager] ✅ Feature started: messageCache
+[12:17:19] INFO  [FeatureManager] ✅ Feature started: antiDelete
+[12:17:19] INFO  [FeatureManager] ✅ Feature started: antiViewOnce
+[12:17:19] INFO  [FeatureManager] ✅ Feature started: autoReact
+[12:17:19] INFO  [FeatureManager] ✅ Features started
+[12:17:19] INFO  [ConnectionHandler] 🔌 Establishing WhatsApp connection...
+Crypto at connect(): Crypto {}
+[12:17:19] INFO  [ConnectionHandler] ✅ WhatsApp socket created successfully
+[12:17:19] INFO  [BotManager] 🎉 Bot Manager started successfully!
+[12:17:20] WARN  [ConnectionHandler] 🔌 Connection closed:
+  Extra: {
+  "reason": 405,
+  "message": "Connection Failure"
+}
+[12:17:20] INFO  [ConnectionHandler] 🔄 Attempting reconnect 1/5 in 3000ms...
+[12:17:23] INFO  [ConnectionHandler] 🔌 Establishing WhatsApp connection...
+Crypto at connect(): Crypto {}
+[12:17:23] INFO  [ConnectionHandler] ✅ WhatsApp socket created successfully
+[12:17:23] WARN  [ConnectionHandler] 🔌 Connection closed:
+  Extra: {
+  "reason": 405,
+  "message": "Connection Failure"
+}
+[12:17:23] INFO  [ConnectionHandler] 🔄 Attempting reconnect 1/5 in 3000ms...
+[12:17:23] INFO  [Feature:messageCache] 🔌 Connection closed, saving cache data
+[12:17:23] INFO  [Feature:antiDelete] 🔌 Connection closed, saving anti-delete data
+[12:17:23] INFO  [Feature:antiViewOnce] 🔌 Connection closed, saving anti-viewonce data
+[12:17:23] INFO  [Feature:autoReact] 🔌 Connection closed, saving auto-react data
+[12:17:23] INFO  [Feature:messageCache] 🔌 Connection closed, saving cache data
+[12:17:23] INFO  [Feature:antiDelete] 🔌 Connection closed, saving anti-delete data
+[12:17:23] INFO  [Feature:antiViewOnce] 🔌 Connection closed, saving anti-viewonce data
+[12:17:23] INFO  [Feature:autoReact] 🔌 Connection closed, saving auto-react data
+[12:17:23] INFO  [BotManager] 🔄 Connection closed, attempting to reconnect...
+[12:17:23] ERROR [JsonStorage:antiDelete.json] Failed to save data to data/features/antiDelete.json:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "access",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiDelete.json.tmp"
+}
+[12:17:23] ERROR [Feature:antiDelete] ❌ Failed to save delete data:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "access",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiDelete.json.tmp"
+}
+[12:17:23] ERROR [JsonStorage:messageCache.json] Failed to save data to data/features/messageCache.json:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "access",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\messageCache.json.tmp"
+}
+[12:17:23] ERROR [Feature:messageCache] ❌ Failed to save cache data:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "access",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\messageCache.json.tmp"
+}
+[12:17:23] ERROR [JsonStorage:antiViewOnce.json] Failed to save data to data/features/antiViewOnce.json:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "access",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiViewOnce.json.tmp"
+}
+[12:17:23] ERROR [Feature:antiViewOnce] ❌ Failed to save view once data:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "access",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiViewOnce.json.tmp"
+}
+[12:17:23] ERROR [JsonStorage:autoReact.json] Failed to save data to data/features/autoReact.json:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "access",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\autoReact.json.tmp"
+}
+[12:17:23] ERROR [Feature:autoReact] ❌ Failed to save reaction data:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "access",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\autoReact.json.tmp"
+}
+[12:17:26] WARN  [ConnectionHandler] 🔌 Connection closed:
+  Extra: {
+  "reason": 405,
+  "message": "Connection Failure"
+}
+[12:17:26] INFO  [ConnectionHandler] 🔄 Attempting reconnect 2/5 in 6000ms...
+[12:17:26] INFO  [ConnectionHandler] 🔌 Establishing WhatsApp connection...
+Crypto at connect(): Crypto {}
+[12:17:26] INFO  [ConnectionHandler] ✅ WhatsApp socket created successfully
+[12:17:26] INFO  [BotManager] 🚀 Starting Bot Manager...
+[12:17:26] INFO  [FeatureManager] 🚀 Starting features...
+[12:17:26] INFO  [FeatureManager] ▶️ Starting feature: messageCache
+[12:17:26] INFO  [Feature:messageCache] ▶️ Starting messageCache feature...
+[12:17:26] INFO  [FeatureManager] ▶️ Starting feature: antiDelete
+[12:17:26] INFO  [Feature:antiDelete] ▶️ Starting antiDelete feature...
+[12:17:26] INFO  [FeatureManager] ▶️ Starting feature: antiViewOnce
+[12:17:26] INFO  [Feature:antiViewOnce] ▶️ Starting antiViewOnce feature...
+[12:17:26] INFO  [FeatureManager] ▶️ Starting feature: autoReact
+[12:17:26] INFO  [Feature:autoReact] ▶️ Starting autoReact feature...
+[12:17:26] INFO  [Feature:messageCache] ✅ messageCache feature started
+[12:17:26] INFO  [Feature:antiDelete] ✅ antiDelete feature started
+[12:17:26] INFO  [Feature:antiViewOnce] ✅ antiViewOnce feature started
+[12:17:26] INFO  [Feature:autoReact] ✅ autoReact feature started
+[12:17:26] INFO  [FeatureManager] ✅ Feature started: messageCache
+[12:17:26] INFO  [FeatureManager] ✅ Feature started: antiDelete
+[12:17:26] INFO  [FeatureManager] ✅ Feature started: antiViewOnce
+[12:17:26] INFO  [FeatureManager] ✅ Feature started: autoReact
+[12:17:26] INFO  [FeatureManager] ✅ Features started
+[12:17:26] INFO  [ConnectionHandler] 🔌 Establishing WhatsApp connection...
+Crypto at connect(): Crypto {}
+[12:17:26] INFO  [ConnectionHandler] ✅ WhatsApp socket created successfully
+[12:17:26] INFO  [BotManager] 🎉 Bot Manager started successfully!
+[12:17:29] WARN  [ConnectionHandler] 🔌 Connection closed:
+  Extra: {
+  "reason": 405,
+  "message": "Connection Failure"
+}
+[12:17:29] INFO  [ConnectionHandler] 🔄 Attempting reconnect 1/5 in 3000ms...
+[12:17:31] WARN  [ConnectionHandler] 🔌 Connection closed:
+  Extra: {
+  "reason": 405,
+  "message": "Connection Failure"
+}
+[12:17:31] INFO  [ConnectionHandler] 🔄 Attempting reconnect 2/5 in 6000ms...
+[12:17:31] INFO  [Feature:messageCache] 🔌 Connection closed, saving cache data
+[12:17:31] INFO  [Feature:antiDelete] 🔌 Connection closed, saving anti-delete data
+[12:17:31] INFO  [Feature:antiViewOnce] 🔌 Connection closed, saving anti-viewonce data
+[12:17:31] INFO  [Feature:autoReact] 🔌 Connection closed, saving auto-react data
+[12:17:31] INFO  [Feature:messageCache] 🔌 Connection closed, saving cache data
+[12:17:31] INFO  [Feature:antiDelete] 🔌 Connection closed, saving anti-delete data
+[12:17:31] INFO  [Feature:antiViewOnce] 🔌 Connection closed, saving anti-viewonce data
+[12:17:31] INFO  [Feature:autoReact] 🔌 Connection closed, saving auto-react data
+[12:17:31] INFO  [Feature:messageCache] 🔌 Connection closed, saving cache data
+[12:17:31] INFO  [Feature:antiDelete] 🔌 Connection closed, saving anti-delete data
+[12:17:31] INFO  [Feature:antiViewOnce] 🔌 Connection closed, saving anti-viewonce data
+[12:17:32] INFO  [Feature:autoReact] 🔌 Connection closed, saving auto-react data
+[12:17:32] INFO  [BotManager] 🔄 Connection closed, attempting to reconnect...
+[12:17:32] ERROR [JsonStorage:antiDelete.json] Failed to save data to data/features/antiDelete.json:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "rename",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiDelete.json.tmp",
+  "dest": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiDelete.json"
+}
+[12:17:32] ERROR [Feature:antiDelete] ❌ Failed to save delete data:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "rename",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiDelete.json.tmp",
+  "dest": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiDelete.json"
+}
+[12:17:32] ERROR [JsonStorage:antiViewOnce.json] Failed to save data to data/features/antiViewOnce.json:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "rename",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiViewOnce.json.tmp",
+  "dest": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiViewOnce.json"
+}
+[12:17:32] ERROR [Feature:antiViewOnce] ❌ Failed to save view once data:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "rename",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiViewOnce.json.tmp",
+  "dest": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiViewOnce.json"
+}
+[12:17:32] ERROR [JsonStorage:antiDelete.json] Failed to save data to data/features/antiDelete.json:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "rename",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiDelete.json.tmp",
+  "dest": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiDelete.json"
+}
+[12:17:32] ERROR [Feature:antiDelete] ❌ Failed to save delete data:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "rename",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiDelete.json.tmp",
+  "dest": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiDelete.json"
+}
+[12:17:32] ERROR [JsonStorage:antiViewOnce.json] Failed to save data to data/features/antiViewOnce.json:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "rename",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiViewOnce.json.tmp",
+  "dest": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiViewOnce.json"
+}
+[12:17:32] ERROR [Feature:antiViewOnce] ❌ Failed to save view once data:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "rename",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiViewOnce.json.tmp",
+  "dest": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\antiViewOnce.json"
+}
+[12:17:32] ERROR [JsonStorage:autoReact.json] Failed to save data to data/features/autoReact.json:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "rename",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\autoReact.json.tmp",
+  "dest": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\autoReact.json"
+}
+[12:17:32] ERROR [Feature:autoReact] ❌ Failed to save reaction data:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "rename",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\autoReact.json.tmp",
+  "dest": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\autoReact.json"
+}
+[12:17:32] ERROR [JsonStorage:autoReact.json] Failed to save data to data/features/autoReact.json:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "access",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\autoReact.json.tmp"
+}
+[12:17:32] ERROR [Feature:autoReact] ❌ Failed to save reaction data:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "access",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\autoReact.json.tmp"
+}
+[12:17:32] ERROR [JsonStorage:messageCache.json] Failed to save data to data/features/messageCache.json:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "access",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\messageCache.json.tmp"
+}
+[12:17:32] ERROR [Feature:messageCache] ❌ Failed to save cache data:
+  Extra: {
+  "errno": -4058,
+  "code": "ENOENT",
+  "syscall": "access",
+  "path": "C:\\Users\\Martins\\Downloads\\BotDesign\\BotDesign\\data\\features\\messageCache.json.tmp"
+}
+[12:17:32] INFO  [Orchestrator] 📡 Received SIGINT, initiating graceful shutdown...
+[12:17:32] INFO  [Orchestrator] 🔄 Shutting down WhatsApp Bot System...
+[12:17:32] INFO  [BotManager] 🔄 Shutting down Bot Manager...
+[12:17:32] INFO  [FeatureManager] 🛑 Stopping features...
+[12:17:32] INFO  [FeatureManager] ⏹️ Stopping feature: messageCache
+[12:17:32] INFO  [Feature:messageCache] ⏹️ Stopping messageCache feature...
+[12:17:32] INFO  [FeatureManager] ⏹️ Stopping feature: antiDelete
+[12:17:32] INFO  [Feature:antiDelete] ⏹️ Stopping antiDelete feature...
+[12:17:32] INFO  [FeatureManager] ⏹️ Stopping feature: antiViewOnce
+[12:17:32] INFO  [Feature:antiViewOnce] ⏹️ Stopping antiViewOnce feature...
+[12:17:32] INFO  [FeatureManager] ⏹️ Stopping feature: autoReact
+[12:17:32] INFO  [Feature:autoReact] ⏹️ Stopping autoReact feature...
+[12:17:32] INFO  [Feature:antiDelete] ✅ antiDelete feature stopped
+[12:17:32] INFO  [FeatureManager] ✅ Feature stopped: antiDelete
+[12:17:32] INFO  [Feature:messageCache] ✅ messageCache feature stopped
+[12:17:32] INFO  [FeatureManager] ✅ Feature stopped: messageCache
+[12:17:32] INFO  [Feature:antiViewOnce] ✅ antiViewOnce feature stopped
+[12:17:32] INFO  [FeatureManager] ✅ Feature stopped: antiViewOnce
+[12:17:32] INFO  [Feature:autoReact] ✅ autoReact feature stopped
+[12:17:32] INFO  [FeatureManager] ✅ Feature stopped: autoReact
+[12:17:32] INFO  [FeatureManager] ✅ Features stopped
+[12:17:32] INFO  [ConnectionHandler] 🔌 Disconnecting from WhatsApp...
+[12:17:32] WARN  [ConnectionHandler] ⚠️ Failed to set offline presence:
+  Extra: Cannot read properties of undefined (reading 'name')
+[12:17:32] INFO  [ConnectionHandler] ✅ Disconnected from WhatsApp
+[12:17:32] INFO  [EventBus] 🧹 Cleaning up Event Bus...
+[12:17:32] INFO  [EventBus] ✅ Event Bus cleanup completed
+[12:17:32] INFO  [BotManager] ✅ Bot Manager shutdown completed
+[12:17:32] INFO  [Orchestrator] Logger shutting down...
+[12:17:32] INFO  [ConnectionHandler] 🔌 Establishing WhatsApp connection...
+Crypto at connect(): Crypto {}
+[12:17:32] INFO  [ConnectionHandler] ✅ WhatsApp socket created successfully
+[12:17:32] INFO  [Orchestrator] Logger shutdown complete
+[12:17:32] INFO  [Orchestrator] ✅ Graceful shutdown completed
+PS C:\Users\Martins\Downloads\BotDesign\BotDesign> 
