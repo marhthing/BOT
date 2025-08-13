@@ -46,12 +46,45 @@ class WhatsAppBotOrchestrator {
     async start() {
         try {
             this.logger.info('🔄 Starting WhatsApp Bot...');
+            
+            // Step 1: Verify packages
+            await this.verifyPackages();
+            
             await this.botManager.start();
             this.logger.info('🎉 WhatsApp Bot started successfully!');
         } catch (error) {
             this.logger.error('❌ Failed to start bot:', error);
             await this.errorHandler.handleError(error, 'STARTUP');
             process.exit(1);
+        }
+    }
+
+    async verifyPackages() {
+        try {
+            this.logger.info('📦 Step 1: Verifying packages...');
+            const fs = require('fs');
+            
+            // Check if node_modules exists
+            if (!fs.existsSync('node_modules')) {
+                this.logger.info('📦 Installing packages...');
+                const { exec } = require('child_process');
+                await new Promise((resolve, reject) => {
+                    exec('npm install', (error, stdout, stderr) => {
+                        if (error) {
+                            this.logger.error('❌ Package installation failed:', error);
+                            reject(error);
+                        } else {
+                            this.logger.info('✅ Packages installed successfully');
+                            resolve();
+                        }
+                    });
+                });
+            } else {
+                this.logger.info('✅ Packages already installed');
+            }
+        } catch (error) {
+            this.logger.error('❌ Package verification failed:', error);
+            throw error;
         }
     }
 

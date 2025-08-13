@@ -148,8 +148,19 @@ class ConnectionHandler {
                             '--no-first-run',
                             '--no-zygote',
                             '--single-process',
-                            '--disable-gpu'
-                        ]
+                            '--disable-gpu',
+                            '--disable-web-security',
+                            '--disable-features=VizDisplayCompositor',
+                            '--disable-extensions',
+                            '--disable-plugins',
+                            '--disable-background-timer-throttling',
+                            '--disable-backgrounding-occluded-windows',
+                            '--disable-renderer-backgrounding',
+                            '--disable-field-trial-config',
+                            '--disable-back-forward-cache',
+                            '--disable-ipc-flooding-protection'
+                        ],
+                        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
                     }
                 });
 
@@ -169,15 +180,25 @@ class ConnectionHandler {
         }
     }
 
-    async connectWithCode(phoneNumber) {
+    async connectWithCode() {
         try {
             this.logger.info('🔢 Starting 8-digit code pairing...');
             this.pairingMethod = 'code';
             
-            // WhatsApp Web.js doesn't support phone number pairing directly
-            // We'll use QR code as fallback but inform the user
-            this.logger.info('💡 Note: whatsapp-web.js uses QR code authentication');
-            this.logger.info('📱 A QR code will appear - this is the standard method');
+            this.logger.info('');
+            this.logger.info('📱 8-Digit Code Pairing Instructions:');
+            this.logger.info('1. Open WhatsApp on your phone');
+            this.logger.info('2. Go to Settings > Linked Devices');
+            this.logger.info('3. Tap "Link a Device"');
+            this.logger.info('4. Tap "Link with phone number instead"');
+            this.logger.info('5. You will receive an 8-digit code on your phone');
+            this.logger.info('6. Enter that code below when prompted');
+            this.logger.info('');
+            
+            // For now, we'll still use QR as whatsapp-web.js doesn't support direct phone pairing
+            // But we inform the user properly
+            this.logger.info('💡 Note: Currently displaying QR code as primary method');
+            this.logger.info('📱 The QR code below can be scanned instead:');
             
             await this.connect('qr');
             

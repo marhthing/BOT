@@ -76,10 +76,14 @@ class BotManager {
             this.logger.info('🚀 Starting Bot Manager...');
             this.setState('CONNECTING');
 
+            // Step 1: Check packages (handled by npm install in workflow)
+            this.logger.info('✅ Step 1: Packages verified');
+
             // Start features first
             await this.featureManager.startFeatures();
 
-            // Check if we have a valid session and attempt connection
+            // Step 2: Check if session exists and is valid
+            this.logger.info('🔍 Step 2: Checking for existing session...');
             const hasValidSession = await this.checkAndValidateSession();
             
             if (hasValidSession) {
@@ -90,6 +94,8 @@ class BotManager {
                 if (connected) {
                     this.setState('READY');
                     this.logger.info('🎉 Bot Manager started successfully!');
+                    // Step 3: Send confirmation and start features
+                    await this.sendPairingConfirmation();
                     return;
                 }
             }
@@ -411,22 +417,43 @@ class BotManager {
     }
 
     async askPairingMethod() {
+        const readline = require('readline');
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+
         this.logger.info('');
         this.logger.info('🔗 Choose your pairing method:');
         this.logger.info('');
-        this.logger.info('1️⃣  QR Code - Scan with your phone (default)');
+        this.logger.info('1️⃣  QR Code - Scan with your phone');
         this.logger.info('2️⃣  8-Digit Code - Enter pairing code manually');
         this.logger.info('');
-        this.logger.info('💡 Both methods work the same - choose what\'s easier for you!');
-        this.logger.info('');
-        this.logger.info('⚡ Starting QR Code pairing in 10 seconds...');
-        this.logger.info('   (The system will automatically choose QR code if no input is provided)');
-        this.logger.info('');
-        
-        // For now, start with QR code (we can enhance this later to accept user input)
-        setTimeout(async () => {
-            await this.startQRPairing();
-        }, 10000);
+
+        return new Promise((resolve) => {
+            const askQuestion = () => {
+                rl.question('Enter your choice (1 or 2): ', async (answer) => {
+                    const choice = answer.trim();
+                    
+                    if (choice === '1') {
+                        this.logger.info('📱 You selected QR Code pairing');
+                        rl.close();
+                        await this.startQRPairing();
+                        resolve();
+                    } else if (choice === '2') {
+                        this.logger.info('🔢 You selected 8-Digit Code pairing');
+                        rl.close();
+                        await this.start8DigitPairing();
+                        resolve();
+                    } else {
+                        this.logger.warn('⚠️ Invalid choice. Please enter 1 or 2.');
+                        askQuestion();
+                    }
+                });
+            };
+            
+            askQuestion();
+        });
     }
 
     async startQRPairing() {
