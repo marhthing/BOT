@@ -263,6 +263,10 @@ class SessionManager {
         return this.sessionData;
     }
 
+    getSessionData() {
+        return this.sessionData;
+    }
+
     isSessionValid() {
         return this.sessionData && this.sessionData.isValid;
     }

@@ -78,17 +78,24 @@ class BotManager {
             // Start features first
             await this.featureManager.startFeatures();
 
-            // Start connection
-            this.sock = await this.connectionHandler.connect();
+            // Check if we have a valid session and attempt connection
+            const hasValidSession = await this.checkAndValidateSession();
             
-            // Register event handlers
-            this.registerEventHandlers();
+            if (hasValidSession) {
+                // Try to connect with existing session
+                this.logger.info('📱 Attempting connection with existing session...');
+                const connected = await this.attemptConnection();
+                
+                if (connected) {
+                    this.setState('READY');
+                    this.logger.info('🎉 Bot Manager started successfully!');
+                    return;
+                }
+            }
 
-            // Handle authentication if needed
-            await this.handleAuthentication();
-
-            this.setState('READY');
-            this.logger.info('🎉 Bot Manager started successfully!');
+            // If no valid session or connection failed, start pairing process
+            this.logger.info('🔐 No valid session found. Starting pairing process...');
+            await this.startPairingProcess();
 
         } catch (error) {
             this.logger.error('❌ Failed to start Bot Manager:', error);
@@ -149,13 +156,31 @@ class BotManager {
 
         if (qr) {
             this.setState('AUTHENTICATING');
-            await this.pairingManager.handleQRCode(qr);
+            this.logger.info('📱 QR Code received! Please scan with WhatsApp:');
+            this.logger.info('');
+            
+            // Display QR code using qrcode-terminal
+            const qrcode = require('qrcode-terminal');
+            qrcode.generate(qr, { small: true });
+            
+            this.logger.info('');
+            this.logger.info('📲 Scan the QR code above with your WhatsApp mobile app');
+            this.logger.info('💡 Go to WhatsApp > Settings > Linked Devices > Link a Device');
         }
 
         if (connection === 'close') {
-            const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== 401;
+            const reason = lastDisconnect?.error?.output?.statusCode;
             
-            if (shouldReconnect && !this.isShuttingDown) {
+            if (reason === 401) {
+                // Logged out, clear session and restart pairing
+                this.logger.warn('🚪 Session expired. Clearing session and restarting pairing...');
+                await this.sessionManager.clearSession();
+                setTimeout(() => this.startPairingProcess(), 2000);
+            } else if (reason === 405) {
+                // Connection failure (likely no session), start pairing
+                this.logger.warn('🔐 Connection rejected. Starting pairing process...');
+                await this.startPairingProcess();
+            } else if (!this.isShuttingDown) {
                 this.logger.info('🔄 Connection closed, attempting to reconnect...');
                 this.setState('CONNECTING');
                 setTimeout(() => this.start(), 3000);
@@ -167,10 +192,15 @@ class BotManager {
 
         if (connection === 'open') {
             this.setState('READY');
-            this.logger.info('🔗 Successfully connected to WhatsApp!');
+            this.logger.info('🎉 Successfully connected to WhatsApp!');
             
             // Set bot presence
             await this.sock.sendPresenceUpdate('available');
+            
+            // Send confirmation message to self (if we have our own number)
+            if (isNewLogin) {
+                await this.sendPairingConfirmation();
+            }
         }
     }
 
@@ -260,6 +290,120 @@ class BotManager {
 
     isReady() {
         return this.state === 'READY';
+    }
+
+    async checkAndValidateSession() {
+        try {
+            // Check if session has valid credentials
+            const authState = this.sessionManager.getAuthState();
+            if (!authState || !authState.creds || !authState.creds.noiseKey) {
+                this.logger.info('❌ No valid session credentials found');
+                return false;
+            }
+
+            // Check session age and validity
+            const sessionData = await this.sessionManager.getSessionData();
+            if (!sessionData || !sessionData.isValid) {
+                this.logger.info('❌ Session is invalid or corrupted');
+                return false;
+            }
+
+            this.logger.info('✅ Valid session found');
+            return true;
+        } catch (error) {
+            this.logger.warn('⚠️ Session validation failed:', error.message);
+            return false;
+        }
+    }
+
+    async attemptConnection() {
+        try {
+            this.logger.info('🔌 Attempting to connect with existing session...');
+            
+            // Start connection
+            this.sock = await this.connectionHandler.connect();
+            this.registerEventHandlers();
+
+            // Wait for connection result (with timeout)
+            return new Promise((resolve) => {
+                const timeout = setTimeout(() => {
+                    this.logger.warn('⏰ Connection attempt timed out');
+                    resolve(false);
+                }, 15000); // 15 second timeout
+
+                const connectionHandler = (update) => {
+                    const { connection } = update;
+                    
+                    if (connection === 'open') {
+                        clearTimeout(timeout);
+                        this.logger.info('✅ Successfully connected with existing session!');
+                        resolve(true);
+                    } else if (connection === 'close') {
+                        clearTimeout(timeout);
+                        this.logger.warn('❌ Connection failed with existing session');
+                        resolve(false);
+                    }
+                };
+
+                // Listen for connection updates
+                if (this.sock) {
+                    this.sock.ev.on('connection.update', connectionHandler);
+                }
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Connection attempt failed:', error.message);
+            return false;
+        }
+    }
+
+    async startPairingProcess() {
+        try {
+            this.logger.info('🔐 Starting pairing process...');
+            this.setState('AUTHENTICATING');
+
+            // Clear any existing session
+            await this.sessionManager.clearSession();
+
+            // Create new session for pairing
+            await this.sessionManager.createNewSession();
+
+            // Start fresh connection for pairing
+            this.sock = await this.connectionHandler.connect();
+            this.registerEventHandlers();
+
+            this.logger.info('📱 Waiting for QR code or pairing method...');
+            this.logger.info('💡 The QR code will appear below when ready');
+
+        } catch (error) {
+            this.logger.error('❌ Failed to start pairing process:', error);
+            throw error;
+        }
+    }
+
+    async sendPairingConfirmation() {
+        try {
+            // Wait a moment for connection to stabilize
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Get bot's own JID
+            const myJid = this.sock.user?.id;
+            if (myJid) {
+                const message = '🤖 *WhatsApp Bot Successfully Paired!*\n\n' +
+                              '✅ Your WhatsApp bot is now connected and ready to use.\n' +
+                              '📱 All features are active:\n' +
+                              '• Anti-delete message recovery\n' +
+                              '• View-once media capture\n' +
+                              '• Automatic reactions\n' +
+                              '• Message caching\n\n' +
+                              '💡 Type `.help` to see available commands.';
+
+                await this.sock.sendMessage(myJid, { text: message });
+                this.logger.info('📧 Pairing confirmation sent to your WhatsApp');
+            }
+        } catch (error) {
+            this.logger.warn('⚠️ Could not send pairing confirmation:', error.message);
+        }
     }
 }
 
